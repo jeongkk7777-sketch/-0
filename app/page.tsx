@@ -7,7 +7,7 @@ type Quote = {
   author: string;
 };
 
-const defaultData: Record<string, Quote[]> = {
+const defaultQuotes: Record<string, Quote[]> = {
   자신감: [
     {
       text: "성공은 최종 목적지가 아니라 계속되는 여정이다.",
@@ -53,19 +53,20 @@ const defaultData: Record<string, Quote[]> = {
 };
 
 export default function Home() {
-  const [quotes, setQuotes] =
-    useState<Record<string, Quote[]>>(defaultData);
-
   const [screen, setScreen] = useState("home");
+  const [quotes, setQuotes] =
+    useState<Record<string, Quote[]>>(defaultQuotes);
+
   const [category, setCategory] = useState("");
-  const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
+  const [currentQuote, setCurrentQuote] =
+    useState<Quote | null>(null);
 
   const [newCategory, setNewCategory] = useState("");
   const [newQuote, setNewQuote] = useState("");
   const [newAuthor, setNewAuthor] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("quote-app-data");
+    const saved = localStorage.getItem("quotes-app");
 
     if (saved) {
       setQuotes(JSON.parse(saved));
@@ -74,7 +75,7 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem(
-      "quote-app-data",
+      "quotes-app",
       JSON.stringify(quotes)
     );
   }, [quotes]);
@@ -82,7 +83,7 @@ export default function Home() {
   const getRandomQuote = (cat: string) => {
     const list = quotes[cat];
 
-    if (!list?.length) {
+    if (!list || list.length === 0) {
       setCurrentQuote({
         text: "명언이 없습니다.",
         author: "",
@@ -100,36 +101,6 @@ export default function Home() {
     setCategory(cat);
     getRandomQuote(cat);
     setScreen("quote");
-  };
-
-  const addQuote = () => {
-    if (!newQuote.trim()) return;
-
-    setQuotes({
-      ...quotes,
-      [category]: [
-        ...quotes[category],
-        {
-          text: newQuote,
-          author: newAuthor || "작자 미상",
-        },
-      ],
-    });
-
-    setNewQuote("");
-    setNewAuthor("");
-
-    alert("명언이 추가되었습니다.");
-  };
-
-  const deleteQuote = (index: number) => {
-    const updated = { ...quotes };
-
-    updated[category] = updated[category].filter(
-      (_, i) => i !== index
-    );
-
-    setQuotes(updated);
   };
 
   const addCategory = () => {
@@ -159,8 +130,38 @@ export default function Home() {
     }
 
     const updated = { ...quotes };
-
     delete updated[cat];
+
+    setQuotes(updated);
+  };
+
+  const addQuote = () => {
+    if (!newQuote.trim()) return;
+
+    setQuotes({
+      ...quotes,
+      [category]: [
+        ...(quotes[category] || []),
+        {
+          text: newQuote,
+          author: newAuthor || "작자 미상",
+        },
+      ],
+    });
+
+    setNewQuote("");
+    setNewAuthor("");
+
+    alert("추가 완료");
+  };
+
+  const deleteQuote = (index: number) => {
+    const updated = { ...quotes };
+
+    updated[category] =
+      updated[category].filter(
+        (_, i) => i !== index
+      );
 
     setQuotes(updated);
   };
@@ -176,7 +177,7 @@ export default function Home() {
           <button
             key={cat}
             onClick={() => openCategory(cat)}
-            className="w-64 p-4 rounded-2xl border text-xl bg-white"
+            className="w-64 p-4 border rounded-2xl text-xl"
           >
             {cat}
           </button>
@@ -200,13 +201,13 @@ export default function Home() {
         <div className="flex-1 flex items-center justify-center">
           <div
             onClick={() => getRandomQuote(category)}
-            className="bg-blue-100 rounded-3xl p-10 max-w-2xl w-full text-center shadow cursor-pointer"
+            className="bg-blue-100 rounded-3xl p-10 max-w-xl w-full text-center shadow cursor-pointer"
           >
             <h2 className="text-3xl font-bold leading-relaxed">
               "{currentQuote?.text}"
             </h2>
 
-            <p className="mt-8 text-xl text-gray-600">
+            <p className="mt-6 text-xl text-gray-600">
               - {currentQuote?.author}
             </p>
 
@@ -240,47 +241,52 @@ export default function Home() {
           onClick={() => setScreen("delete")}
           className="border px-4 py-2 rounded block"
         >
-          삭제 관리
+          명언 삭제
         </button>
 
-        <h2 className="font-bold pt-4">
-          카테고리 추가
-        </h2>
+        <div className="pt-6">
+          <h2 className="font-bold mb-2">
+            카테고리 추가
+          </h2>
 
-        <input
-          value={newCategory}
-          onChange={(e) =>
-            setNewCategory(e.target.value)
-          }
-          placeholder="새 카테고리"
-          className="border p-2 rounded w-full"
-        />
+          <input
+            value={newCategory}
+            onChange={(e) =>
+              setNewCategory(e.target.value)
+            }
+            className="border p-2 rounded w-full"
+          />
 
-        <button
-          onClick={addCategory}
-          className="border px-4 py-2 rounded"
-        >
-          추가
-        </button>
-
-        <h2 className="font-bold pt-4">
-          카테고리 삭제
-        </h2>
-
-        {Object.keys(quotes).map((cat) => (
-          <div
-            key={cat}
-            className="border p-3 rounded flex justify-between"
+          <button
+            onClick={addCategory}
+            className="border px-4 py-2 rounded mt-2"
           >
-            <span>{cat}</span>
+            추가
+          </button>
+        </div>
 
-            <button
-              onClick={() => deleteCategory(cat)}
+        <div>
+          <h2 className="font-bold mb-2">
+            카테고리 삭제
+          </h2>
+
+          {Object.keys(quotes).map((cat) => (
+            <div
+              key={cat}
+              className="flex justify-between border p-2 rounded mb-2"
             >
-              삭제
-            </button>
-          </div>
-        ))}
+              <span>{cat}</span>
+
+              <button
+                onClick={() =>
+                  deleteCategory(cat)
+                }
+              >
+                삭제
+              </button>
+            </div>
+          ))}
+        </div>
       </main>
     );
   }
@@ -301,7 +307,7 @@ export default function Home() {
             setNewQuote(e.target.value)
           }
           placeholder="명언"
-          className="border p-3 rounded w-full h-40"
+          className="border p-2 rounded w-full h-40"
         />
 
         <input
@@ -310,7 +316,7 @@ export default function Home() {
             setNewAuthor(e.target.value)
           }
           placeholder="작가"
-          className="border p-3 rounded w-full"
+          className="border p-2 rounded w-full"
         />
 
         <button
