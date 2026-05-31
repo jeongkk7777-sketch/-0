@@ -22,7 +22,6 @@ const defaultData: Record<string, Quote[]> = {
       author: "넬슨 만델라",
     },
   ],
-
   인간관계: [
     {
       text: "사람을 얻는 가장 좋은 방법은 먼저 진심을 주는 것이다.",
@@ -37,7 +36,6 @@ const defaultData: Record<string, Quote[]> = {
       author: "스티븐 코비",
     },
   ],
-
   공부: [
     {
       text: "오늘의 노력이 내일의 자신감을 만든다.",
@@ -58,20 +56,16 @@ export default function Home() {
   const [quotes, setQuotes] =
     useState<Record<string, Quote[]>>(defaultData);
 
-  const [screen, setScreen] = useState<
-    "home" | "quote" | "settings" | "add" | "delete"
-  >("home");
-
+  const [screen, setScreen] = useState("home");
   const [category, setCategory] = useState("");
-  const [currentQuote, setCurrentQuote] =
-    useState<Quote | null>(null);
+  const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
 
   const [newCategory, setNewCategory] = useState("");
   const [newQuote, setNewQuote] = useState("");
   const [newAuthor, setNewAuthor] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("quote-app");
+    const saved = localStorage.getItem("quote-app-data");
 
     if (saved) {
       setQuotes(JSON.parse(saved));
@@ -80,7 +74,7 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem(
-      "quote-app",
+      "quote-app-data",
       JSON.stringify(quotes)
     );
   }, [quotes]);
@@ -88,7 +82,7 @@ export default function Home() {
   const getRandomQuote = (cat: string) => {
     const list = quotes[cat];
 
-    if (!list || list.length === 0) {
+    if (!list?.length) {
       setCurrentQuote({
         text: "명언이 없습니다.",
         author: "",
@@ -114,7 +108,7 @@ export default function Home() {
     setQuotes({
       ...quotes,
       [category]: [
-        ...(quotes[category] || []),
+        ...quotes[category],
         {
           text: newQuote,
           author: newAuthor || "작자 미상",
@@ -182,7 +176,7 @@ export default function Home() {
           <button
             key={cat}
             onClick={() => openCategory(cat)}
-            className="w-64 border rounded-2xl p-4 text-xl"
+            className="w-64 p-4 rounded-2xl border text-xl bg-white"
           >
             {cat}
           </button>
@@ -203,21 +197,23 @@ export default function Home() {
           </button>
         </div>
 
-        <div
-          className="flex-1 flex flex-col justify-center items-center text-center cursor-pointer"
-          onClick={() => getRandomQuote(category)}
-        >
-          <h2 className="text-3xl font-bold max-w-xl">
-            "{currentQuote?.text}"
-          </h2>
+        <div className="flex-1 flex items-center justify-center">
+          <div
+            onClick={() => getRandomQuote(category)}
+            className="bg-blue-100 rounded-3xl p-10 max-w-2xl w-full text-center shadow cursor-pointer"
+          >
+            <h2 className="text-3xl font-bold leading-relaxed">
+              "{currentQuote?.text}"
+            </h2>
 
-          <p className="mt-6 text-xl text-gray-500">
-            - {currentQuote?.author}
-          </p>
+            <p className="mt-8 text-xl text-gray-600">
+              - {currentQuote?.author}
+            </p>
 
-          <p className="mt-8 text-sm text-gray-400">
-            터치하면 다른 명언 보기
-          </p>
+            <p className="mt-8 text-sm text-gray-500">
+              터치하면 다른 명언 보기
+            </p>
+          </div>
         </div>
       </main>
     );
@@ -247,7 +243,7 @@ export default function Home() {
           삭제 관리
         </button>
 
-        <h2 className="font-bold mt-8">
+        <h2 className="font-bold pt-4">
           카테고리 추가
         </h2>
 
@@ -267,14 +263,14 @@ export default function Home() {
           추가
         </button>
 
-        <h2 className="font-bold mt-8">
+        <h2 className="font-bold pt-4">
           카테고리 삭제
         </h2>
 
         {Object.keys(quotes).map((cat) => (
           <div
             key={cat}
-            className="flex justify-between border p-2 rounded mb-2"
+            className="border p-3 rounded flex justify-between"
           >
             <span>{cat}</span>
 
@@ -305,7 +301,7 @@ export default function Home() {
             setNewQuote(e.target.value)
           }
           placeholder="명언"
-          className="border p-2 rounded w-full h-40"
+          className="border p-3 rounded w-full h-40"
         />
 
         <input
@@ -314,7 +310,7 @@ export default function Home() {
             setNewAuthor(e.target.value)
           }
           placeholder="작가"
-          className="border p-2 rounded w-full"
+          className="border p-3 rounded w-full"
         />
 
         <button
@@ -336,14 +332,10 @@ export default function Home() {
         뒤로가기
       </button>
 
-      <h2 className="text-2xl font-bold mb-4">
-        {category} 명언 삭제
-      </h2>
-
       {quotes[category]?.map((q, index) => (
         <div
           key={index}
-          className="border rounded p-4 mb-3 flex justify-between gap-4"
+          className="border p-4 rounded mb-3 flex justify-between"
         >
           <span>{q.text}</span>
 
